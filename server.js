@@ -4,6 +4,7 @@ const port = process.env.PORT || 3001
 const postsRouter = require('./routes/posts')
 const notFound = require('./middlewares/notFound');
 const errorsHandler = require('./middlewares/errorsHandler')
+const db = require('./db/connection');
 
 app.use(express.json());
 
