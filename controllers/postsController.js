@@ -1,47 +1,65 @@
 const posts = require('../data/posts');
+const connection = require('../db/connection');
 
 // index
+
 const index = (req, res) => {
-    let filteredPost = posts;
 
-    if (req.query.tag) {
-        filteredPost = posts.filter(post =>
-            post.tags.includes(req.query.tag)
-        );
-    }
+    const sql = 'SELECT * FROM posts'
 
-    res.json(filteredPost);
-};
+    connection.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: true, message: err.message })
+        console.log(results);
+
+        res.json(results)
+
+    })
+
+}
 
 // show
+
 const show = (req, res) => {
-    const id = parseInt(req.params.id)
-    const post = posts.find(p => p.id === id)
+    const id = parseInt(req.params.id);
 
-    if (!post) {
-        return res.status(404).json({
-            error: "Not Found",
-            message: "Post non trovato"
-        });
-    }
+    const sql = 'SELECT * FROM blog_db.posts WHERE id = ?'
 
-    res.json(post)
-};
+    connection.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: true, message: err.message });
+
+        if (!results.length > 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Post non trovato'
+            });
+        }
+
+        return res.json(results[0]);
+    })
+}
+
 
 // delete
+
 const destroy = (req, res) => {
     const id = parseInt(req.params.id);
-    const post = posts.find(p => p.id === id)
 
-    if (!post) {
-        return res.status(404).json({
-            message: `Post non trovato`
-        })
-    }
+    const sql = "DELETE FROM blog_db.posts WHERE id = ?";
 
-    posts.splice(posts.indexOf(post), 1);
-    res.sendStatus(204);
+    connection.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: true, message: err.message });
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Post non trovato'
+            });
+        }
+
+        res.sendStatus(204);
+    });
 };
+
 
 // store
 const store = (req, res) => {
